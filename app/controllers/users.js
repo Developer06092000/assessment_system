@@ -115,7 +115,7 @@ exports.login = (req, res) => {
             // { expiresIn: "4h" },
             (err, token) => {
               if (err) return res.send(err);
-              return res.send({ token: token });
+              return res.send({ token: token, role: res1.role, fullname: res1.fullname });
             }
           );
         } else {
