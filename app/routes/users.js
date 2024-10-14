@@ -142,10 +142,10 @@ module.exports = (app) => {
    *                  description: Some server error
    */
 
-  router.get("/get/", Users.get);
+  router.get("/", Users.get);
   router.post("/register/", Users.register);
   router.post("/login/", Users.login);
-  router.post("/change/", Users.update);
-  router.delete("/delete/:id/", Users.delete);
+  router.post("/change/:id/", Users.update);
+  router.delete("/:id/", Users.delete);
   app.use("/auth", router);
 };

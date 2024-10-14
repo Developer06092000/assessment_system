@@ -28,7 +28,7 @@ exports.get = (req, res) => {
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
       let search = { attributes: ["id", "fullname", "username", "role", "created_id"] };
-      if (auth.username !== config.defaultUsername) {
+      if (auth.username !== "superadmin") {
         search.where = { role: { [Op.or]: ["teacher", "admin"] } };
       }
       if (auth.role === "admin") {
@@ -51,14 +51,17 @@ exports.register = (req, res) => {
     let token = tokenHeader.split(" ")[1];
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
-      if (auth.role !== "superadmin" && req.body.role !== "teacher") {
-        return res.sendStatus(403);
+      if (auth.role === "superadmin" && (req.body.role === "teacher" || req.body.role === "admin")) {
+        return res.send('The role field is invalid. The role field must be of the form "admin" or "teacher".');
+      } else if (auth.role === "admin" && req.body.role !== "teacher") {
+        return res.send('The role field is invalid. The role field must be of the form "teacher".');
+      } else if (auth.role === "teacher") {
+        return res.send(401);
       }
       if (req.body.role !== "superadmin" && req.body.role !== "admin" && req.body.role !== "teacher") {
         return res.send('The role field is invalid. The role field must be of the form "admin" or "teacher".');
       }
-      console.log(auth);
-      if (req.body.role === "superadmin" && auth.username !== config.defaultUsername) {
+      if (req.body.role === config.defaultRole && auth.username !== config.defaultUsername) {
         return res.sendStatus(403);
       }
       Users.findOne({ where: { username: req.body.username } })
@@ -109,15 +112,10 @@ exports.login = (req, res) => {
             role: res1.role,
             created_id: res1.created_id,
           };
-          jwt.sign(
-            user,
-            config.tokenKey,
-            // { expiresIn: "4h" },
-            (err, token) => {
-              if (err) return res.send(err);
-              return res.send({ token: token, role: res1.role, fullname: res1.fullname });
-            }
-          );
+          jwt.sign(user, config.tokenKey, (err, token) => {
+            if (err) return res.send(err);
+            return res.send({ token: token, role: res1.role, fullname: res1.fullname });
+          });
         } else {
           return res.send("Incorrect password!");
         }
@@ -146,7 +144,7 @@ exports.update = (req, res) => {
         let password = bcrypt.hashSync(req.body.password, salt).valueOf();
         data.password = password;
       }
-      Users.update(data, { where: { username: auth.username } })
+      Users.update(data, { where: { id: req.params.id } })
         .then((res1) => {
           if (res1[0] !== 0) {
             return res.send("Data has been changed!");
@@ -171,7 +169,7 @@ exports.delete = (req, res) => {
       if (err) return res.send(err);
       if (auth.role === "superadmin") {
         Users.destroy({
-          where: { id: req.params.id, created_id: auth.id },
+          where: { id: req.params.id },
         })
           .then((res1) => {
             if (res1) {
