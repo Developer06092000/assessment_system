@@ -146,6 +146,7 @@ module.exports = (app) => {
   router.post("/register/", Users.register);
   router.post("/login/", Users.login);
   router.post("/change/:id/", Users.update);
+  router.post("/change/account/:id/", Users.updateAccount);
   router.delete("/:id/", Users.delete);
   app.use("/auth", router);
 };

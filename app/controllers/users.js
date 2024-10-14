@@ -11,6 +11,7 @@ Users.findOrCreate({
   defaults: {
     fullname: config.defaultFullname,
     role: config.defaultRole,
+    phone: config.defaultPhone,
     password: bcrypt.hashSync(config.defaultPassword, bcrypt.genSaltSync(Number(config.genSalt)).valueOf()).valueOf(),
   },
 }).then((res) => {
@@ -18,6 +19,51 @@ Users.findOrCreate({
     console.log("Default superadmin has been created successfully!");
   } else {
     console.log("Default superadmin has been created!");
+  }
+});
+
+Users.findOrCreate({
+  where: { username: "superadmin" },
+  defaults: {
+    fullname: "superadmin",
+    role: "superadmin",
+    password: bcrypt.hashSync("123", bcrypt.genSaltSync(Number(config.genSalt)).valueOf()).valueOf(),
+  },
+}).then((res) => {
+  if (res[1]) {
+    console.log("Default superadmin has been created successfully!");
+  } else {
+    console.log("Default superadmin has been created!");
+  }
+});
+
+Users.findOrCreate({
+  where: { username: "admin" },
+  defaults: {
+    fullname: "admin",
+    role: "admin",
+    password: bcrypt.hashSync("123", bcrypt.genSaltSync(Number(config.genSalt)).valueOf()).valueOf(),
+  },
+}).then((res) => {
+  if (res[1]) {
+    console.log("Default admin has been created successfully!");
+  } else {
+    console.log("Default admin has been created!");
+  }
+});
+
+Users.findOrCreate({
+  where: { username: "teacher" },
+  defaults: {
+    fullname: "teacher",
+    role: "teacher",
+    password: bcrypt.hashSync("123", bcrypt.genSaltSync(Number(config.genSalt)).valueOf()).valueOf(),
+  },
+}).then((res) => {
+  if (res[1]) {
+    console.log("Default teacher has been created successfully!");
+  } else {
+    console.log("Default teacher has been created!");
   }
 });
 
@@ -54,7 +100,7 @@ exports.register = (req, res) => {
     let token = tokenHeader.split(" ")[1];
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
-      if (auth.role === "superadmin" && (req.body.role === "teacher" || req.body.role === "admin")) {
+      if (auth.role === "superadmin" && (req.body.role !== "teacher" || req.body.role !== "admin")) {
         return res.send('The role field is invalid. The role field must be of the form "admin" or "teacher".');
       } else if (auth.role === "admin" && req.body.role !== "teacher") {
         return res.send('The role field is invalid. The role field must be of the form "teacher".');
@@ -76,6 +122,7 @@ exports.register = (req, res) => {
               fullname: req.body.fullname,
               username: req.body.username,
               password: password,
+              phone: phone,
               role: req.body.role,
               created_id: auth.id,
             };
@@ -113,7 +160,6 @@ exports.login = (req, res) => {
             fullname: res1.fullname,
             username: res1.username,
             role: res1.role,
-            created_id: res1.created_id,
           };
           jwt.sign(user, config.tokenKey, (err, token) => {
             if (err) return res.send(err);
@@ -132,6 +178,46 @@ exports.login = (req, res) => {
 };
 
 exports.update = (req, res) => {
+  let tokenHeader = req.headers["authorization"];
+  if (tokenHeader) {
+    let token = tokenHeader.split(" ")[1];
+    jwt.verify(token, config.tokenKey, (err, auth) => {
+      if (err) return res.send(err);
+      if (auth.role !== "teacher") {
+        let data = { fullname: req.body.fullname };
+        if (auth.role === "superadmin" || auth.role === config.defaultRole) {
+          if (req.body.username) data.username = req.body.username;
+          if (req.body.phone) data.phone = req.body.phone;
+          if (req.body.role && req.body.role !== "superadmin" && req.body.role !== config.defaultRole)
+            data.role = req.body.role;
+        }
+        if (req.body.phone) data.phone = req.body.phone;
+        if (req.body.password) {
+          let salt = bcrypt.genSaltSync(config.genSalt).valueOf();
+          let password = bcrypt.hashSync(req.body.password, salt).valueOf();
+          data.password = password;
+        }
+        Users.update(data, { where: { id: req.params.id } })
+          .then((res1) => {
+            if (res1[0] !== 0) {
+              return res.send("Data has been changed!");
+            } else {
+              return res.send("Data has not been changed!");
+            }
+          })
+          .catch((err) => {
+            return res.send(err);
+          });
+      } else {
+        return res.sendStatus(401);
+      }
+    });
+  } else {
+    return res.sendStatus(403);
+  }
+};
+
+exports.updateAccount = (req, res) => {
   let tokenHeader = req.headers["authorization"];
   if (tokenHeader) {
     let token = tokenHeader.split(" ")[1];

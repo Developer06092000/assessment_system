@@ -6,5 +6,6 @@ module.exports = {
   defaultUsername: process.env.defaultUsername,
   defaultFullname: process.env.defaultFullname,
   defaultPassword: process.env.defaultPassword,
+  defaultPhone: process.env.defaultPhone,
   defaultRole: process.env.defaultRole,
 };
