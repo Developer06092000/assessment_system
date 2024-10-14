@@ -28,11 +28,14 @@ exports.get = (req, res) => {
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
       let search = { attributes: ["id", "fullname", "username", "role", "created_id"] };
-      if (auth.username !== "superadmin") {
+      if (auth.role === "superadmin") {
         search.where = { role: { [Op.or]: ["teacher", "admin"] } };
       }
       if (auth.role === "admin") {
         search.where = { role: "teacher" };
+      }
+      if (auth.role === "teacher") {
+        return res.send(401);
       }
       Users.findAll(search)
         .then((res1) => {
