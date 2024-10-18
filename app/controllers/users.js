@@ -73,7 +73,7 @@ exports.get = (req, res) => {
     let token = tokenHeader.split(" ")[1];
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
-      let search = { attributes: ["id", "fullname", "username", "role", "created_id"] };
+      let search = { attributes: ["id", "fullname", "username", "role", "phone", "created_id"] };
       if (auth.role === "superadmin") {
         search.where = { role: { [Op.or]: ["teacher", "admin"] } };
       }
@@ -84,6 +84,26 @@ exports.get = (req, res) => {
         return res.send(401);
       }
       Users.findAll(search)
+        .then((res1) => {
+          return res.send(res1);
+        })
+        .catch((err) => {
+          return res.send(err);
+        });
+    });
+  }
+};
+
+exports.getProfile = (req, res) => {
+  let tokenHeader = req.headers["authorization"];
+  if (tokenHeader) {
+    let token = tokenHeader.split(" ")[1];
+    jwt.verify(token, config.tokenKey, (err, auth) => {
+      if (err) return res.send(err);
+      Users.findOne({
+        where: { username: auth.username },
+        attributes: ["id", "fullname", "username", "role", "phone", "created_id"],
+      })
         .then((res1) => {
           return res.send(res1);
         })
@@ -218,35 +238,31 @@ exports.update = (req, res) => {
 };
 
 exports.updateAccount = (req, res) => {
-  let tokenHeader = req.headers["authorization"];
-  if (tokenHeader) {
-    let token = tokenHeader.split(" ")[1];
-    jwt.verify(token, config.tokenKey, (err, auth) => {
-      if (err) return res.send(err);
-      let data = { fullname: req.body.fullname };
-      if (auth.role === "superadmin") {
-        if (req.body.username) data.username = req.body.username;
-        if (req.body.role) data.role = req.body.role;
-      }
-      if (req.body.password) {
+  if (req.body.password) {
+    let tokenHeader = req.headers["authorization"];
+    if (tokenHeader) {
+      let token = tokenHeader.split(" ")[1];
+      jwt.verify(token, config.tokenKey, (err, auth) => {
+        if (err) return res.send(err);
         let salt = bcrypt.genSaltSync(config.genSalt).valueOf();
         let password = bcrypt.hashSync(req.body.password, salt).valueOf();
-        data.password = password;
-      }
-      Users.update(data, { where: { id: auth.id } })
-        .then((res1) => {
-          if (res1[0] !== 0) {
-            return res.send("Data has been changed!");
-          } else {
-            return res.send("Data has not been changed!");
-          }
-        })
-        .catch((err) => {
-          return res.send(err);
-        });
-    });
+        Users.update({ password }, { where: { id: auth.id } })
+          .then((res1) => {
+            if (res1[0] !== 0) {
+              return res.send("Data has been changed!");
+            } else {
+              return res.send("Data has not been changed!");
+            }
+          })
+          .catch((err) => {
+            return res.send(err);
+          });
+      });
+    } else {
+      return res.sendStatus(401);
+    }
   } else {
-    return res.sendStatus(403);
+    return res.send("Passwords are not included!");
   }
 };
 

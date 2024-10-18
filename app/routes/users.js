@@ -143,9 +143,10 @@ module.exports = (app) => {
    */
 
   router.get("/", Users.get);
+  router.get("/profile", Users.getProfile);
   router.post("/register/", Users.register);
   router.post("/login/", Users.login);
-  router.patch("/change/account/", Users.updateAccount);
+  router.patch("/change/password/", Users.updateAccount);
   router.patch("/change/:id/", Users.update);
   router.delete("/:id/", Users.delete);
   app.use("/auth", router);
