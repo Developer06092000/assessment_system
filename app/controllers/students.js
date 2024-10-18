@@ -4,25 +4,25 @@ const db = require("../models");
 const Student = db.Students;
 const Group = db.Groups;
 
-setTimeout(() => {
-  Student.findOrCreate({
-    where: { id: 1 },
-    defaults: {
-      fullname: "Student1",
-      // username: "student1",
-      // password: "123",
-      phone: "933333",
-      parentsPhone: "933333",
-      groupId: 1,
-    },
-  }).then((res) => {
-    if (res[1]) {
-      console.log("Default student has been created successfully!");
-    } else {
-      console.log("Default student has been created!");
-    }
-  });
-}, 55);
+// setTimeout(() => {
+//   Student.findOrCreate({
+//     where: { id: 1 },
+//     defaults: {
+//       fullname: "Student1",
+//       // username: "student1",
+//       // password: "123",
+//       phone: "933333",
+//       parentsPhone: "933333",
+//       groupId: 1,
+//     },
+//   }).then((res) => {
+//     if (res[1]) {
+//       console.log("Default student has been created successfully!");
+//     } else {
+//       console.log("Default student has been created!");
+//     }
+//   });
+// }, 55);
 
 exports.getParams = (req, res) => {
   let search = {};

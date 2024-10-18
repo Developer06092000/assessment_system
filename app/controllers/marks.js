@@ -21,27 +21,27 @@ const Group = db.Groups;
 //   EXECUTE FUNCTION calculate_average();
 // `);
 
-setTimeout(() => {
-  Mark.findOrCreate({
-    where: { id: 1 },
-    defaults: {
-      extant: true,
-      listen: 60,
-      read: 60,
-      vocab: 70,
-      speak: 70,
-      date: "2024-09-09",
-      groupId: 1,
-      studentId: 1,
-    },
-  }).then((res) => {
-    if (res[1]) {
-      console.log("Default mark has been created successfully!");
-    } else {
-      console.log("Default mark has been created!");
-    }
-  });
-}, 60);
+// setTimeout(() => {
+//   Mark.findOrCreate({
+//     where: { id: 1 },
+//     defaults: {
+//       extant: true,
+//       listen: 60,
+//       read: 60,
+//       vocab: 70,
+//       speak: 70,
+//       date: "2024-09-09",
+//       groupId: 1,
+//       studentId: 1,
+//     },
+//   }).then((res) => {
+//     if (res[1]) {
+//       console.log("Default mark has been created successfully!");
+//     } else {
+//       console.log("Default mark has been created!");
+//     }
+//   });
+// }, 60);
 
 function getLastDayOfMonth(year, month) {
   const lastDay = new Date(year, month + 1, 0).getDate();
