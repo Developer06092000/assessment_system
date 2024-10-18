@@ -233,7 +233,7 @@ exports.updateAccount = (req, res) => {
         let password = bcrypt.hashSync(req.body.password, salt).valueOf();
         data.password = password;
       }
-      Users.update(data, { where: { id: req.params.id } })
+      Users.update(data, { where: { id: auth.id } })
         .then((res1) => {
           if (res1[0] !== 0) {
             return res.send("Data has been changed!");
