@@ -237,7 +237,7 @@ exports.update = (req, res) => {
   }
 };
 
-exports.updateAccount = (req, res) => {
+exports.updatePassword = (req, res) => {
   if (req.body.password) {
     let tokenHeader = req.headers["authorization"];
     if (tokenHeader) {
