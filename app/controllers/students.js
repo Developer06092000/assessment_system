@@ -9,8 +9,8 @@ setTimeout(() => {
     where: { id: 1 },
     defaults: {
       fullname: "Student1",
-      username: "student1",
-      password: "123",
+      // username: "student1",
+      // password: "123",
       phone: "933333",
       parentsPhone: "933333",
       groupId: 1,
