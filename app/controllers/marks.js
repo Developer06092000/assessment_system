@@ -5,21 +5,21 @@ const Mark = db.Marks;
 const Student = db.Students;
 const Group = db.Groups;
 
-const { sequelize } = db;
+// const { sequelize } = db;
 
-sequelize.query(`CREATE OR REPLACE FUNCTION calculate_average()
-  RETURNS TRIGGER AS $$
-  BEGIN
-    NEW.average = (NEW."listen" + NEW."read" + NEW."speak" + NEW."vocab") / 4.0;
-    RETURN NEW;
-  END;
-  $$ LANGUAGE plpgsql;
+// sequelize.query(`CREATE OR REPLACE FUNCTION calculate_average()
+//   RETURNS TRIGGER AS $$
+//   BEGIN
+//     NEW.average = (NEW."listen" + NEW."read" + NEW."speak" + NEW."vocab") / 4.0;
+//     RETURN NEW;
+//   END;
+//   $$ LANGUAGE plpgsql;
 
-	CREATE OR REPLACE TRIGGER calculate_average_insert_trigger
-  BEFORE INSERT OR UPDATE ON marks
-  FOR EACH ROW
-  EXECUTE FUNCTION calculate_average();
-`);
+// 	CREATE OR REPLACE TRIGGER calculate_average_insert_trigger
+//   BEFORE INSERT OR UPDATE ON marks
+//   FOR EACH ROW
+//   EXECUTE FUNCTION calculate_average();
+// `);
 
 setTimeout(() => {
   Mark.findOrCreate({
