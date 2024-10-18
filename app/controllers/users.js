@@ -100,12 +100,12 @@ exports.register = (req, res) => {
     let token = tokenHeader.split(" ")[1];
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
-      if (auth.role === "superadmin" && (req.body.role !== "teacher" || req.body.role !== "admin")) {
+      if (auth.role === "superadmin" && req.body.role !== "teacher" && req.body.role !== "admin") {
         return res.send('The role field is invalid. The role field must be of the form "admin" or "teacher".');
       } else if (auth.role === "admin" && req.body.role !== "teacher") {
         return res.send('The role field is invalid. The role field must be of the form "teacher".');
       } else if (auth.role === "teacher") {
-        return res.send(401);
+        return res.sendStatus(401);
       }
       if (req.body.role !== "superadmin" && req.body.role !== "admin" && req.body.role !== "teacher") {
         return res.send('The role field is invalid. The role field must be of the form "admin" or "teacher".');
@@ -122,14 +122,14 @@ exports.register = (req, res) => {
               fullname: req.body.fullname,
               username: req.body.username,
               password: password,
-              phone: phone,
+              phone: req.body.phone,
               role: req.body.role,
               created_id: auth.id,
             };
             Users.create(user)
-              .then((res1) => {
-                Users.findByPk(res1.id)
-                  .then((res2) => {
+              .then((res2) => {
+                Users.findByPk(res2.id)
+                  .then((res3) => {
                     return res.send("User created!");
                   })
                   .catch((err2) => {
@@ -209,11 +209,11 @@ exports.update = (req, res) => {
             return res.send(err);
           });
       } else {
-        return res.sendStatus(401);
+        return res.sendStatus(403);
       }
     });
   } else {
-    return res.sendStatus(403);
+    return res.sendStatus(401);
   }
 };
 
@@ -256,7 +256,7 @@ exports.delete = (req, res) => {
     let token = tokenHeader.split(" ")[1];
     jwt.verify(token, config.tokenKey, (err, auth) => {
       if (err) return res.send(err);
-      if (auth.role === "superadmin") {
+      if (auth.role !== "teacher") {
         Users.destroy({
           where: { id: req.params.id },
         })
@@ -274,5 +274,7 @@ exports.delete = (req, res) => {
         return res.sendStatus(403);
       }
     });
+  } else {
+    res.sendStatus(401);
   }
 };

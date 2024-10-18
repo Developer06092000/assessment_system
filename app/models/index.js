@@ -27,8 +27,8 @@ db.Groups = require("./groups.js")(sequelize, Sequelize);
 db.Marks = require("./marks.js")(sequelize, Sequelize);
 
 db.Users.hasMany(db.Users, { foreignKey: "created_id", defaultValue: null });
-db.Groups.hasMany(db.Students);
 db.Users.hasMany(db.Groups);
+db.Groups.hasMany(db.Students);
 db.Groups.hasMany(db.Marks);
 db.Students.hasMany(db.Marks);
 

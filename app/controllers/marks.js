@@ -1,9 +1,46 @@
 const { Op } = require("sequelize");
 const db = require("../models");
+const { sequelize } = db;
 
 const Mark = db.Marks;
 const Student = db.Students;
 const Group = db.Groups;
+
+sequelize.query(`CREATE OR REPLACE FUNCTION calculate_average()
+  RETURNS TRIGGER AS $$
+  BEGIN
+    NEW.average = (NEW."listen" + NEW."read" + NEW."speak" + NEW."vocab") / 4.0;
+    RETURN NEW;
+  END;
+  $$ LANGUAGE plpgsql;
+	
+	CREATE OR REPLACE TRIGGER calculate_average_insert_trigger
+  BEFORE INSERT OR UPDATE ON marks
+  FOR EACH ROW
+  EXECUTE FUNCTION calculate_average();
+`);
+
+setTimeout(() => {
+  Mark.findOrCreate({
+    where: { id: 1 },
+    defaults: {
+      extant: true,
+      listen: 60,
+      read: 60,
+      vocab: 70,
+      speak: 70,
+      date: "2024-09-09",
+      groupId: 1,
+      studentId: 1,
+    },
+  }).then((res) => {
+    if (res[1]) {
+      console.log("Default mark has been created successfully!");
+    } else {
+      console.log("Default mark has been created!");
+    }
+  });
+}, 60);
 
 function getLastDayOfMonth(year, month) {
   const lastDay = new Date(year, month + 1, 0).getDate();

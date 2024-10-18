@@ -1,7 +1,28 @@
+const config = require("../config/config");
 const db = require("../models");
 
 const Student = db.Students;
 const Group = db.Groups;
+
+setTimeout(() => {
+  Student.findOrCreate({
+    where: { id: 1 },
+    defaults: {
+      fullname: "Student1",
+      username: "student1",
+      password: "123",
+      phone: "933333",
+      parentsPhone: "933333",
+      groupId: 1,
+    },
+  }).then((res) => {
+    if (res[1]) {
+      console.log("Default student has been created successfully!");
+    } else {
+      console.log("Default student has been created!");
+    }
+  });
+}, 55);
 
 exports.getParams = (req, res) => {
   let search = {};
@@ -19,13 +40,14 @@ exports.getParams = (req, res) => {
 };
 
 exports.create = (req, res) => {
-  if (req.auth.role === "superadmin" || req.auth.role === "admin") {
+  if (req.auth.role === config.defaultRole || req.auth.role === "superadmin" || req.auth.role === "admin") {
     Group.findOne({ where: { id: req.body.groupId } })
       .then((res1) => {
         if (res1) {
           Student.create({
             fullname: req.body.fullname,
             phone: req.body.phone,
+            parentsPhone: req.body.parentsPhone,
             groupId: req.body.groupId,
           })
             .then((res1) => {
@@ -46,12 +68,12 @@ exports.create = (req, res) => {
       })
       .catch((err1) => res.send(err1));
   } else {
-    return res.sendStatus(403);
+    return res.sendStatus(401);
   }
 };
 
 exports.update = (req, res) => {
-  if (req.auth.role === "superadmin" || req.auth.role === "admin") {
+  if (req.auth.role === config.defaultRole || req.auth.role === "superadmin" || req.auth.role === "admin") {
     Group.findOne({ where: { id: req.body.groupId } }).then((res1) => {
       if (res1) {
         let data = {};
@@ -60,6 +82,9 @@ exports.update = (req, res) => {
         }
         if (req.body.phone) {
           data.phone = req.body.phone;
+        }
+        if (req.body.parentsPhone) {
+          data.parentsPhone = req.body.parentsPhone;
         }
         if (req.body.groupId) {
           data.groupId = req.body.groupId;
@@ -91,7 +116,7 @@ exports.update = (req, res) => {
 };
 
 exports.delete = (req, res) => {
-  if (req.auth.role === "superadmin" || req.auth.role === "admin") {
+  if (req.auth.role === config.defaultRole || req.auth.role === "superadmin" || req.auth.role === "admin") {
     Student.destroy({
       where: { id: req.params.id },
     })
@@ -106,6 +131,6 @@ exports.delete = (req, res) => {
         res.send(err);
       });
   } else {
-    return res.sendStatus(403);
+    return res.sendStatus(401);
   }
 };
