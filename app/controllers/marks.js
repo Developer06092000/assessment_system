@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const db = require("../models");
-const { sequelize } = db;
+// const { sequelize } = db;
 
 const Mark = db.Marks;
 const Student = db.Students;
