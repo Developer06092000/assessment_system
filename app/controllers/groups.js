@@ -19,7 +19,7 @@ setTimeout(() => {
       console.log("Default group has been created!");
     }
   });
-}, 50);
+}, 100);
 
 exports.get = (req, res) => {
   const id = req.params?.id;
