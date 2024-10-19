@@ -6,6 +6,7 @@ const User = db.Users;
 // create default group
 setTimeout(() => {
   Group.findOrCreate({
+    where: { name: "Group1" },
     defaults: {
       name: "Group1",
       type: "beg",
