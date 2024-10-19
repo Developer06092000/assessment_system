@@ -4,22 +4,22 @@ const Group = db.Groups;
 const User = db.Users;
 
 // create default group
-// setTimeout(() => {
-//   Group.findOrCreate({
-//     where: { id: 1 },
-//     defaults: {
-//       name: "Group1",
-//       type: "beg",
-//       userId: 4,
-//     },
-//   }).then((res) => {
-//     if (res[1]) {
-//       console.log("Default group has been created successfully!");
-//     } else {
-//       console.log("Default group has been created!");
-//     }
-//   });
-// }, 50);
+setTimeout(() => {
+  Group.findOrCreate({
+    where: { id: 1 },
+    defaults: {
+      name: "Group1",
+      type: "beg",
+      userId: 4,
+    },
+  }).then((res) => {
+    if (res[1]) {
+      console.log("Default group has been created successfully!");
+    } else {
+      console.log("Default group has been created!");
+    }
+  });
+}, 50);
 
 exports.get = (req, res) => {
   const id = req.params?.id;
