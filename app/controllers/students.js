@@ -66,40 +66,47 @@ exports.create = (req, res) => {
   }
 };
 
-exports.update = (req, res) => {
+exports.update = async (req, res) => {
   if (req.auth.role === config.defaultRole || req.auth.role === "superadmin" || req.auth.role === "admin") {
-    Group.findOne({ where: { id: req.body.groupId } }).then((res1) => {
-      if (res1) {
-        let data = {};
-        if (req.body.fullname) {
-          data.fullname = req.body.fullname;
+    let msg = "";
+    if (req.body.groupId) {
+      msg = await Group.findOne({ where: { id: req.body.groupId } }).then((res1) => {
+        if (!res1) {
+          return "No such group exists!!!";
+        } else {
+          return "";
         }
-        if (req.body.phone) {
-          data.phone = req.body.phone;
+      });
+    }
+    if (msg.length !== 0) {
+      return res.send(msg);
+    }
+    let data = {};
+    if (req.body.fullname) {
+      data.fullname = req.body.fullname;
+    }
+    if (req.body.phone) {
+      data.phone = req.body.phone;
+    }
+    if (req.body.parentsPhone) {
+      data.parentsPhone = req.body.parentsPhone;
+    }
+    if (req.body.groupId) {
+      data.groupId = req.body.groupId;
+    }
+    Student.update(data, { where: { id: req.params.id } })
+      .then((res1) => {
+        if (res1[0] !== 0) {
+          res.send("Student updated successfully!");
+        } else {
+          res.send("Not found");
         }
-        if (req.body.parentsPhone) {
-          data.parentsPhone = req.body.parentsPhone;
-        }
-        if (req.body.groupId) {
-          data.groupId = req.body.groupId;
-        }
-        Student.update(data, { where: { id: req.params.id } })
-          .then((res1) => {
-            if (res1[0] !== 0) {
-              res.send("Student updated successfully!");
-            } else {
-              res.send("Not found");
-            }
-          })
-          .catch((err1) => {
-            res.send(err1);
-          });
-      } else {
-        return res.send("No such group exists!!!");
-      }
-    });
+      })
+      .catch((err1) => {
+        res.send(err1);
+      });
   } else {
-    return res.sendStatus(403);
+    return res.sendStatus(401);
   }
 };
 
