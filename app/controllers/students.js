@@ -51,13 +51,7 @@ exports.create = (req, res) => {
             groupId: req.body.groupId,
           })
             .then((res1) => {
-              Student.findByPk(res1.id)
-                .then((res2) => {
-                  res.send(res2);
-                })
-                .catch((err2) => {
-                  res.send(err2);
-                });
+              res.send("Student has been created successfully");
             })
             .catch((err) => {
               res.send(err);
@@ -92,13 +86,7 @@ exports.update = (req, res) => {
         Student.update(data, { where: { id: req.params.id } })
           .then((res1) => {
             if (res1[0] !== 0) {
-              Student.findByPk(req.params.id)
-                .then((res2) => {
-                  res.send(res2);
-                })
-                .catch((err2) => {
-                  res.send(err2);
-                });
+              res.send("Student updated successfully!");
             } else {
               res.send("Not found");
             }
