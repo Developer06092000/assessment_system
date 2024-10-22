@@ -14,6 +14,10 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: false,
     },
+    weekdays: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
   });
   return Groups;
 };

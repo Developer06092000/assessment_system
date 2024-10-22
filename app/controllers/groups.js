@@ -54,6 +54,7 @@ exports.create = (req, res) => {
                       Group.create({
                         name: req.body.name,
                         type: req.body.type,
+                        weekdays: req.body.weekdays,
                         userId: req.body.userId,
                       })
                         .then((res4) => {
@@ -104,6 +105,9 @@ exports.update = (req, res) => {
       }
       if (req.body.type) {
         data.type = req.body.type;
+      }
+      if (req.body.weekdays) {
+        data.weekdays = req.body.weekdays;
       }
       if (req.body.userId) {
         data.userId = req.body.userId;
