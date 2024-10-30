@@ -6,13 +6,13 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   host: dbConfig.HOST,
   dialect: dbConfig.dialect,
   dialectModule: pg,
-  operatorsAliases: false,
-  // dialectOptions: {
-  //     ssl: {
-  //         require: true,
-  //         rejectUnauthorized: false,
-  //     },
-  // },
+  // operatorsAliases: false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
   // define: {
   //     timestamps: false,
   // },
