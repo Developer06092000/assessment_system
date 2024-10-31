@@ -1,11 +1,7 @@
 const { Op } = require("sequelize");
 const db = require("../models");
 
-const Mark = db.Marks;
-const Student = db.Students;
-const Group = db.Groups;
-
-// const { sequelize } = db;
+const { Mark, Student, Group, sequelize } = db;
 
 // sequelize.query(`CREATE OR REPLACE FUNCTION calculate_average()
 //   RETURNS TRIGGER AS $$
@@ -49,6 +45,26 @@ function getLastDayOfMonth(year, month) {
   return lastDate;
 }
 
+// function generateMonthObjects Between [startDate endDate]
+function generateMonthObjects(startDate, endDate) {
+  const monthsArray = [];
+  let currentDate = new Date(startDate);
+  let lastDate = new Date(endDate);
+
+  while (currentDate <= lastDate) {
+    const monthObject = {
+      title: currentDate.toLocaleString("default", { month: "long", year: "numeric" }),
+      days: [],
+    };
+    monthsArray.push(monthObject);
+
+    // Move to the next month
+    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+  }
+
+  return monthsArray;
+}
+
 exports.getParams = (req, res) => {
   let search = {};
   if (req.query.id) {
@@ -77,12 +93,107 @@ exports.getDate = (req, res) => {
   let search = {
     where: { groupId: req.query.groupId, date: { [Op.between]: [req.query.date, lastDate] } },
   };
-
   Mark.findAll({ ...search })
-    .then((res1) => {
-      return res.send(res1);
-    })
+    .then((res1) => res.send(res1))
     .catch((err) => console.log(err));
+};
+
+exports.getYear = async (req, res) => {
+  if (!req.query?.groupId || req.query?.groupId.length === 0) return res.send("No such groupId exists!!!");
+  // if (!req.query?.date || req.query?.date.length === 0) return res.send("No such date exists!!!");
+  // let date = new Date(req.query.date);
+  // const year = date.getFullYear();
+  let search = {
+    where: {
+      groupId: req.query.groupId,
+      // date: { [Op.between]: [year + "-01-01", year + "-12-31"] },
+    },
+  };
+
+  let marks = [];
+  await Mark.findAll({
+    ...search,
+    order: [["studentId", "ASC"]],
+    raw: true,
+  })
+    .then((res1) => (marks = res1))
+    .catch((err1) => console.log(err1));
+
+  if (marks.length === 0) {
+    return res.send([]);
+  } else {
+    let minDate = "";
+    let maxDate = "";
+    await Mark.findAll({
+      ...search,
+      raw: true,
+      attributes: [
+        [sequelize.literal("MAX(date)"), "max"],
+        [sequelize.literal("MIN(date)"), "min"],
+      ],
+    })
+      .then((res1) => {
+        if (res1.length !== 0) {
+          minDate = res1[0].min;
+        }
+        if (res1.length !== 0) {
+          maxDate = res1[0].max;
+        }
+      })
+      .catch((err1) => console.log(err1));
+
+    let months = generateMonthObjects(minDate, maxDate);
+
+    let studentsArr = [];
+    await Mark.findAll({
+      ...search,
+      order: [
+        ["date", "ASC"],
+        ["studentId", "ASC"],
+      ],
+      raw: true,
+      attributes: ["date", "studentId"],
+    })
+      .then((res1) => {
+        for (let i = 0; i < res1.length; i++) {
+          if (!studentsArr.includes(res1[i].studentId)) {
+            studentsArr.push(res1[i].studentId);
+          }
+          let date = new Date(res1[i].date).toLocaleString("default", { month: "long", year: "numeric" });
+          let monthIdx = months.findIndex((x) => x.title === date);
+          if (!months[monthIdx].days.includes(res1[i].date)) {
+            months[monthIdx].days.push(res1[i].date);
+          }
+        }
+      })
+      .catch((err1) => console.log(err1));
+
+    let students = [];
+    await Student.findAll({ raw: true, order: [["id", "ASC"]], where: { groupId: { [Op.in]: studentsArr } } })
+      .then(async (res1) => {
+        for (let i = 0; i < res1.length; i++) {
+          res1[i].marks = {};
+          await Mark.findAll({
+            where: {
+              groupId: req.query.groupId,
+              studentId: res1[i].id,
+              // date: { [Op.between]: [year + "-01-01", year + "-12-31"] },
+            },
+            raw: true,
+          })
+            .then((res2) => {
+              for (let j = 0; j < res2.length; j++) {
+                res1[i].marks[res2[j].date] = res2[j];
+              }
+            })
+            .catch((err1) => console.log(err1));
+        }
+        students = res1;
+      })
+      .catch((err1) => console.log(err1));
+
+    return res.send({ months, students });
+  }
 };
 
 exports.create = (req, res) => {
@@ -91,7 +202,7 @@ exports.create = (req, res) => {
   Group.findOne({ where: { id: req.body.groupId } })
     .then((res1) => {
       if (res1) {
-        Student.findOne({ where: { id: req.body.groupId } })
+        Student.findOne({ where: { id: req.body.studentId } })
           .then((res2) => {
             if (res2) {
               let data = {};

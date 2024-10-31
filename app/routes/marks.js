@@ -6,6 +6,7 @@ module.exports = (app) => {
 
   router.get("/", verifyToken, Marks.getParams);
   router.get("/month", verifyToken, Marks.getDate);
+  router.get("/year", verifyToken, Marks.getYear);
   router.post("/", verifyToken, Marks.create);
   router.patch("/:id/", verifyToken, Marks.update);
   //   router.delete("/:id/", verifyToken, Students.delete);
