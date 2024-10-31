@@ -121,7 +121,7 @@ exports.getYear = async (req, res) => {
     .catch((err1) => console.log(err1));
 
   if (marks.length === 0) {
-    return res.send([]);
+    return res.send({ months: [], students: [] });
   } else {
     let minDate = "";
     let maxDate = "";
