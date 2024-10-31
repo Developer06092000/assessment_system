@@ -1,7 +1,7 @@
 const { Op } = require("sequelize");
 const db = require("../models");
 
-const { Mark, Student, Group, sequelize } = db;
+const { Marks, Students, Groups, sequelize } = db;
 
 // sequelize.query(`CREATE OR REPLACE FUNCTION calculate_average()
 //   RETURNS TRIGGER AS $$
@@ -103,6 +103,7 @@ exports.getYear = async (req, res) => {
   // if (!req.query?.date || req.query?.date.length === 0) return res.send("No such date exists!!!");
   // let date = new Date(req.query.date);
   // const year = date.getFullYear();
+
   let search = {
     where: {
       groupId: req.query.groupId,
@@ -111,7 +112,7 @@ exports.getYear = async (req, res) => {
   };
 
   let marks = [];
-  await Mark.findAll({
+  await Marks.findAll({
     ...search,
     order: [["studentId", "ASC"]],
     raw: true,
@@ -124,7 +125,7 @@ exports.getYear = async (req, res) => {
   } else {
     let minDate = "";
     let maxDate = "";
-    await Mark.findAll({
+    await Marks.findAll({
       ...search,
       raw: true,
       attributes: [
@@ -145,7 +146,7 @@ exports.getYear = async (req, res) => {
     let months = generateMonthObjects(minDate, maxDate);
 
     let studentsArr = [];
-    await Mark.findAll({
+    await Marks.findAll({
       ...search,
       order: [
         ["date", "ASC"],
@@ -169,11 +170,11 @@ exports.getYear = async (req, res) => {
       .catch((err1) => console.log(err1));
 
     let students = [];
-    await Student.findAll({ raw: true, order: [["id", "ASC"]], where: { groupId: { [Op.in]: studentsArr } } })
+    await Students.findAll({ raw: true, order: [["id", "ASC"]], where: { groupId: { [Op.in]: studentsArr } } })
       .then(async (res1) => {
         for (let i = 0; i < res1.length; i++) {
           res1[i].marks = {};
-          await Mark.findAll({
+          await Marks.findAll({
             where: {
               groupId: req.query.groupId,
               studentId: res1[i].id,
@@ -199,10 +200,10 @@ exports.getYear = async (req, res) => {
 exports.create = (req, res) => {
   if (!req.body.groupId) return res.send("No such groupId exists!!!");
   if (!req.body.studentId) return res.send("No such studentId exists!!!");
-  Group.findOne({ where: { id: req.body.groupId } })
+  Groups.findOne({ where: { id: req.body.groupId } })
     .then((res1) => {
       if (res1) {
-        Student.findOne({ where: { id: req.body.studentId } })
+        Students.findOne({ where: { id: req.body.studentId } })
           .then((res2) => {
             if (res2) {
               let data = {};
@@ -237,9 +238,9 @@ exports.create = (req, res) => {
               data.average = Math.round((data.speak + data.listen + data.vocab + data.read) / 4);
               data.groupId = req.body.groupId;
               data.studentId = req.body.studentId;
-              Mark.create(data)
+              Marks.create(data)
                 .then((res3) => {
-                  Mark.findByPk(res3.id)
+                  Marks.findByPk(res3.id)
                     .then((res4) => {
                       res.send(res4);
                     })
@@ -263,11 +264,11 @@ exports.create = (req, res) => {
 };
 
 exports.update = async (req, res) => {
-  const mark = await Mark.findOne({ where: { id: req.params.id } });
+  const mark = await Marks.findOne({ where: { id: req.params.id } });
   if (mark) {
     let data = {};
     if (req.body.groupId) {
-      const group = await Group.findOne({ where: { id: req.body.groupId } });
+      const group = await Groups.findOne({ where: { id: req.body.groupId } });
       if (group) {
         data.groupId = req.body.groupId;
       } else {
@@ -275,7 +276,7 @@ exports.update = async (req, res) => {
       }
     }
     if (req.body.studentId) {
-      const student = await Student.findOne({ where: { id: req.body.studentId } });
+      const student = await Students.findOne({ where: { id: req.body.studentId } });
       if (student) {
         data.studentId = req.body.studentId;
       } else {
@@ -307,10 +308,10 @@ exports.update = async (req, res) => {
         Number(data.read ?? mark.read)) /
         4
     );
-    Mark.update(data, { where: { id: req.params.id } })
+    Marks.update(data, { where: { id: req.params.id } })
       .then((res1) => {
         if (res1[0] !== 0) {
-          Mark.findByPk(req.params.id)
+          Marks.findByPk(req.params.id)
             .then((res2) => {
               res.send(res2);
             })
@@ -330,7 +331,7 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = (req, res) => {
-  Mark.destroy({
+  Marks.destroy({
     where: { id: req.params.id },
   })
     .then((res1) => {
