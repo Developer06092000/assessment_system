@@ -170,7 +170,7 @@ exports.getYear = async (req, res) => {
       .catch((err1) => console.log(err1));
 
     let students = [];
-    await Students.findAll({ raw: true, order: [["id", "ASC"]], where: { groupId: { [Op.in]: studentsArr } } })
+    await Students.findAll({ raw: true, order: [["id", "ASC"]], where: { id: { [Op.in]: studentsArr } } })
       .then(async (res1) => {
         for (let i = 0; i < res1.length; i++) {
           res1[i].marks = {};
