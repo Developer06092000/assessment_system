@@ -1,5 +1,6 @@
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 const db = require("../models");
+const { raw } = require("mysql2");
 
 const { Marks, Students, Groups, sequelize } = db;
 
@@ -76,7 +77,7 @@ exports.getParams = (req, res) => {
   if (req.query.date) {
     search.where = { date: req.query.date };
   }
-  Mark.findAll({ ...search })
+  Marks.findAll({ ...search })
     .then((res1) => {
       res.send(res1);
     })
@@ -263,6 +264,60 @@ exports.create = (req, res) => {
     .catch((err1) => res.send(err1));
 };
 
+exports.createNew = async (req, res) => {
+  if (!req.body.groupId) return res.send("No such groupId exists!!!");
+  if (!req.body.date) return res.send("No such date exists!!!");
+
+  await Groups.findAll({ where: { id: req.body.groupId } })
+    .then(async (group) => {
+      if (group.length === 0) {
+        res.send("The group information is incorrect! Update your information!");
+      } else {
+        let marks = [];
+        await Marks.findAll({ where: { groupId: req.body.groupId, date: req.body.date }, raw: true })
+          .then((mark) => {
+            marks = mark;
+          })
+          .catch((err) => res.send(err));
+        if (marks.length === 0) {
+          let studentsArr = [];
+          for (let i = 0; i < req.body.data.length; i++) {
+            if (!studentsArr.includes(req.body.data[i].studentId)) {
+              studentsArr.push(req.body.data[i].studentId);
+            }
+          }
+
+          let students = [];
+          await Students.findAll({
+            raw: true,
+            order: [["id", "ASC"]],
+            where: { id: { [Op.in]: studentsArr, groupId: req.body.groupId } },
+          })
+            .then((res1) => (students = res1))
+            .catch((err) => res.send(err));
+
+          if (students.length === studentsArr.length) {
+            let data = req.body.data;
+            data = data.map((x) => {
+              x.groupId = req.body.groupId;
+              x.date = req.body.date;
+              return x;
+            });
+
+            await Marks.bulkCreate(data)
+              .then((res1) => res.send((data.length === 1 ? "Mark has" : "Marks have") + " been created successfully"))
+              .catch((err) => res.send(err));
+          } else {
+            return res.send("The student information is incorrect! Update your information!");
+          }
+        } else {
+          return res.send("This day's data is available and cannot be recreated!");
+        }
+      }
+    })
+    .catch((err) => res.send(err));
+};
+
 exports.update = async (req, res) => {
   const mark = await Marks.findOne({ where: { id: req.params.id } });
   if (mark) {
@@ -328,6 +383,19 @@ exports.update = async (req, res) => {
   } else {
     return res.send("No such mark exists!!!");
   }
+};
+
+exports.updateNew = async (req, res) => {
+  const data = req.body.data;
+  await Promise.all(
+    data.map((item) => {
+      return Marks.update(item, { where: { id: item.id } });
+    })
+  )
+    .then((res1) => {
+      return res.send((res1.length === 1 ? "Mark has" : "Marks have") + " been updated successfully");
+    })
+    .catch((err) => res.send(err));
 };
 
 exports.delete = (req, res) => {
